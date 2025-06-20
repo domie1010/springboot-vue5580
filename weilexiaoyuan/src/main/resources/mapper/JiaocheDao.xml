@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.JiaocheDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yonghu_id as yonghuId
+        ,a.siji_id as sijiId
+        ,a.jiaoche_uuid_number as jiaocheUuidNumber
+        ,a.jiaoche_name as jiaocheName
+        ,a.jiaoche_photo as jiaochePhoto
+        ,a.shangche_time as shangcheTime
+        ,a.jiaoche_address as jiaocheAddress
+        ,a.jiaoche_quwang_address as jiaocheQuwangAddress
+        ,a.jiaoche_types as jiaocheTypes
+        ,a.jiaoche_new_money as jiaocheNewMoney
+        ,a.jiaoche_content as jiaocheContent
+        ,a.insert_time as insertTime
+        ,a.jiaoche_zhuangtai_types as jiaocheZhuangtaiTypes
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.JiaocheView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,siji.siji_name as sijiName
+        ,siji.siji_phone as sijiPhone
+        ,siji.siji_id_number as sijiIdNumber
+        ,siji.siji_photo as sijiPhoto
+        ,siji.new_money as newMoney
+        ,siji.siji_email as sijiEmail
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_phone as yonghuPhone
+        ,yonghu.yonghu_id_number as yonghuIdNumber
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_email as yonghuEmail
+        ,yonghu.new_money as newMoney
+
+        FROM jiaoche  a
+        left JOIN siji siji ON a.siji_id = siji.id
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.sijiId != null and params.sijiId != ''">
+                and (
+                    a.siji_id = #{params.sijiId} or a.siji_id is null
+                )
+            </if>
+            <if test=" params.jiaocheUuidNumber != '' and params.jiaocheUuidNumber != null and params.jiaocheUuidNumber != 'null' ">
+                and a.jiaoche_uuid_number like CONCAT('%',#{params.jiaocheUuidNumber},'%')
+            </if>
+            <if test=" params.jiaocheName != '' and params.jiaocheName != null and params.jiaocheName != 'null' ">
+                and a.jiaoche_name like CONCAT('%',#{params.jiaocheName},'%')
+            </if>
+            <if test=" params.shangcheTimeStart != '' and params.shangcheTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.shangche_time) >= UNIX_TIMESTAMP(#{params.shangcheTimeStart}) ]]>
+            </if>
+            <if test=" params.shangcheTimeEnd != '' and params.shangcheTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.shangche_time) <= UNIX_TIMESTAMP(#{params.shangcheTimeEnd}) ]]>
+            </if>
+            <if test=" params.jiaocheAddress != '' and params.jiaocheAddress != null and params.jiaocheAddress != 'null' ">
+                and a.jiaoche_address like CONCAT('%',#{params.jiaocheAddress},'%')
+            </if>
+            <if test=" params.jiaocheQuwangAddress != '' and params.jiaocheQuwangAddress != null and params.jiaocheQuwangAddress != 'null' ">
+                and a.jiaoche_quwang_address like CONCAT('%',#{params.jiaocheQuwangAddress},'%')
+            </if>
+            <if test="params.jiaocheTypes != null and params.jiaocheTypes != ''">
+                and a.jiaoche_types = #{params.jiaocheTypes}
+            </if>
+            <if test="params.jiaocheNewMoneyStart != null ">
+                <![CDATA[  and a.jiaoche_new_money >= #{params.jiaocheNewMoneyStart}   ]]>
+            </if>
+            <if test="params.jiaocheNewMoneyEnd != null ">
+                <![CDATA[  and a.jiaoche_new_money <= #{params.jiaocheNewMoneyEnd}   ]]>
+            </if>
+            <if test=" params.jiaocheContent != '' and params.jiaocheContent != null and params.jiaocheContent != 'null' ">
+                and a.jiaoche_content like CONCAT('%',#{params.jiaocheContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+            <if test="params.jiaocheZhuangtaiTypes != null and params.jiaocheZhuangtaiTypes != ''">
+                and a.jiaoche_zhuangtai_types = #{params.jiaocheZhuangtaiTypes}
+            </if>
+
+                <!-- 判断司机的id不为空 -->
+            <if test=" params.sijiIdNotNull != '' and params.sijiIdNotNull != null and params.sijiIdNotNull != 'null' ">
+                and a.siji_id IS NOT NULL
+            </if>
+            <if test=" params.sijiName != '' and params.sijiName != null and params.sijiName != 'null' ">
+                and siji.siji_name like CONCAT('%',#{params.sijiName},'%')
+            </if>
+            <if test=" params.sijiPhone != '' and params.sijiPhone != null and params.sijiPhone != 'null' ">
+                and siji.siji_phone like CONCAT('%',#{params.sijiPhone},'%')
+            </if>
+            <if test=" params.sijiIdNumber != '' and params.sijiIdNumber != null and params.sijiIdNumber != 'null' ">
+                and siji.siji_id_number like CONCAT('%',#{params.sijiIdNumber},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and siji.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and siji.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+            <if test=" params.sijiEmail != '' and params.sijiEmail != null and params.sijiEmail != 'null' ">
+                and siji.siji_email like CONCAT('%',#{params.sijiEmail},'%')
+            </if>
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yonghu.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yonghu.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
